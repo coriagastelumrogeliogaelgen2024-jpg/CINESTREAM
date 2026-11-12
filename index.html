@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineStream - Películas Reales</title>
+    <style>
+        /* --- ESTILOS GENERALES --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #141414;
+            color: #ffffff;
+            padding-bottom: 50px;
+        }
+
+        /* --- ENCABEZADO Y NAVEGACIÓN --- */
+        header {
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .logo {
+            color: #e50914;
+            font-size: 28px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .search-box input {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            background-color: #222;
+            color: white;
+            outline: none;
+            width: 250px;
+            transition: width 0.3s ease;
+        }
+
+        .search-box input:focus {
+            width: 300px;
+            border-color: #e50914;
+        }
+
+        /* --- SECCIÓN PRINCIPAL / BANNER ADAPTABLE --- */
+        .hero {
+            background-image: linear-gradient(to top, #141414 10%, rgba(20, 20, 20, 0.5)), url('https://m.media-amazon.com/images/M/MV5BNWJiNDZiZjEtYzM4Zi00MTA1LWI5MTktODlmZWYwODAwMjcwXkEyXkFqcGc@._V1_.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center 20%;
+            height: 400px;
+            display: flex;
+            align-items: flex-end;
+            padding: 30px 5%;
+            margin-bottom: 20px;
+            transition: background-image 0.5s ease-in-out;
+            box-shadow: inset 0 -50px 50px #141414;
+        }
+
+        .hero-content h1 {
+            font-size: 38px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
+        }
+
+        .hero-content p {
+            max-width: 600px;
+            color: #ddd;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.9);
+            line-height: 1.4;
+        }
+
+        .btn-play {
+            background-color: #e50914;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-play:hover {
+            background-color: #f40612;
+        }
+
+        /* --- FILTROS DE GÉNERO --- */
+        .categories {
+            display: flex;
+            gap: 10px;
+            padding: 0 5% 20px 5%;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            background-color: #222;
+            color: white;
+            border: 1px solid #444;
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .category-btn.active, .category-btn:hover {
+            background-color: #e50914;
+            border-color: #e50914;
+        }
+
+        /* --- PARRILLA DE PELÍCULAS --- */
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 0 5%;
+        }
+
+        .movie-card {
+            background-color: #1f1f1f;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: 290px;
+            object-fit: cover;
+            display: block;
+            background-color: #2a2a2a;
+        }
+
+        .movie-info {
+            padding: 15px;
+        }
+
+        .movie-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .movie-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 12px;
+        }
+
+        .btn-details {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 8px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-details:hover {
+            background-color: #444;
+        }
+
+        /* --- MODAL DE DETALLES Y VIDEO --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: #181818;
+            max-width: 600px;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.9);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            color: #fff;
+            cursor: pointer;
+            z-index: 10;
+            text-shadow: 0 2px 4px #000;
+        }
+
+        .modal-video-container {
+            width: 100%;
+            height: 315px;
+            background-color: #000;
+        }
+
+        .modal-video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-body h2 {
+            margin-bottom: 10px;
+            color: #e50914;
+        }
+
+        .modal-body p {
+            color: #ccc;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ENCABEZADO -->
+    <header>
+        <div class="logo">CineStream</div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar película..." onkeyup="filterMovies()">
+        </div>
+    </header>
+
+    <!-- HERO / DESTACADO -->
+    <section class="hero" id="heroBanner">
+        <div class="hero-content">
+            <h1 id="heroTitle">Terremoto: La Falla de San Andrés</h1>
+            <p id="heroDesc">Tras un devastador terremoto en California, un piloto de helicóptero de rescate busca a su hija a través del estado destruido.</p>
+            <button class="btn-play" onclick="openModal('Terremoto: La Falla de San Andrés', 'Tras un devastador terremoto en California, un piloto de helicóptero de rescate busca a su hija a través del estado destruido.', 'Acción', '2015', 'https://m.media-amazon.com/images/M/MV5BNWJiNDZiZjEtYzM4Zi00MTA1LWI5MTktODlmZWYwODAwMjcwXkEyXkFqcGc@._V1_.jpg', 'https://www.youtube.com/embed/c2vupbrgySk')">Ver Ahora</button>
+        </div>
+    </section>
+
+    <!-- FILTROS -->
+    <div class="categories">
+        <button class="category-btn active" onclick="filterCategory('todos', this)">Todos</button>
+        <button class="category-btn" onclick="filterCategory('terror', this)">Terror</button>
+        <button class="category-btn" onclick="filterCategory('accion', this)">Acción</button>
+        <button class="category-btn" onclick="filterCategory('drama', this)">Drama</button>
+        <button class="category-btn" onclick="filterCategory('fantasia', this)">Fantasía / Animación</button>
+    </div>
+
+    <!-- CATÁLOGO DE PELÍCULAS -->
+    <main class="movies-grid" id="moviesGrid">
+
+        <div class="movie-card" data-category="accion" data-title="la falla de san andres san andreas">
+            <img src="https://m.media-amazon.com/images/M/MV5BNWJiNDZiZjEtYzM4Zi00MTA1LWI5MTktODlmZWYwODAwMjcwXkEyXkFqcGc@._V1_.jpg" alt="La Falla de San Andrés" onerror="this.src='https://picsum.photos/300/400?random=1'">
+            <div class="movie-info">
+                <div class="movie-title">Terremoto: La Falla de San Andrés</div>
+                <div class="movie-meta">
+                    <span>Acción</span>
+                    <span>Rating: 6.2</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Terremoto: La Falla de San Andrés', 'Tras un devastador terremoto en California, un piloto de helicóptero de rescate busca a su hija a través del estado destruido.', 'Acción', '2015', 'https://m.media-amazon.com/images/M/MV5BNWJiNDZiZjEtYzM4Zi00MTA1LWI5MTktODlmZWYwODAwMjcwXkEyXkFqcGc@._V1_.jpg', 'https://www.youtube.com/embed/c2vupbrgySk')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="terror" data-title="el conjuro the conjuring">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS11F500_N9_y_Q7lHoUd4LkOumN2zjJgQFZ20gW0F-nl5BP69P7McJdBS5iEPPuZf1MHeMPtdpzwenUSIIQz8JQQGQapfqPZf1qNP7OxsPVA&s=10" alt="El Conjuro" onerror="this.src='https://picsum.photos/300/400?random=2'">
+            <div class="movie-info">
+                <div class="movie-title">El Conjuro</div>
+                <div class="movie-meta">
+                    <span>Terror</span>
+                    <span>Rating: 7.5</span>
+                </div>
+                <button class="btn-details" onclick="openModal('El Conjuro', 'Los investigadores paranormales Ed y Lorraine Warren trabajan para ayudar a una familia aterrorizada por una presencia oscura en su granja.', 'Terror', '2013', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS11F500_N9_y_Q7lHoUd4LkOumN2zjJgQFZ20gW0F-nl5BP69P7McJdBS5iEPPuZf1MHeMPtdpzwenUSIIQz8JQQGQapfqPZf1qNP7OxsPVA&s=10', 'https://www.youtube.com/embed/wE59Ajd_v9M')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="fantasia" data-title="coraline y la puerta secreta">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQB4-dpfIasDTpr8fuTolwUNMuP3T2s-UZdPSqWWAz15BxlpvvJ-otq6tqX2g55m01mLkhpa46wzFkevRmDfmCV7H0sfEbv2g3XLttCyPp5&s=10" alt="Coraline" onerror="this.src='https://picsum.photos/300/400?random=3'">
+            <div class="movie-info">
+                <div class="movie-title">Coraline y la puerta secreta</div>
+                <div class="movie-meta">
+                    <span>Fantasía</span>
+                    <span>Rating: 7.8</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Coraline y la puerta secreta', 'Una niña descubre una puerta secreta en su nueva casa y entra a una versión alternativa e inquietante de su propia vida.', 'Fantasía / Animación', '2009', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQB4-dpfIasDTpr8fuTolwUNMuP3T2s-UZdPSqWWAz15BxlpvvJ-otq6tqX2g55m01mLkhpa46wzFkevRmDfmCV7H0sfEbv2g3XLttCyPp5&s=10', 'https://www.youtube.com/embed/fvT7W5LHxF4')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="fantasia" data-title="el senor de los anillos lord of the rings">
+            <img src="https://pics.filmaffinity.com/El_seanor_de_los_anillos_La_comunidad_del_anillo-952398002-large.jpg" alt="El Señor de los Anillos" onerror="this.src='https://picsum.photos/300/400?random=4'">
+            <div class="movie-info">
+                <div class="movie-title">El Señor de los Anillos</div>
+                <div class="movie-meta">
+                    <span>Fantasía</span>
+                    <span>Rating: 8.8</span>
+                </div>
+                <button class="btn-details" onclick="openModal('El Señor de los Anillos: La Comunidad del Anillo', 'Frodo Bolsón y sus compañeros emprenden una aventura épica para destruir el Anillo Único.', 'Fantasía', '2001', 'https://pics.filmaffinity.com/El_seanor_de_los_anillos_La_comunidad_del_anillo-952398002-large.jpg', 'https://www.youtube.com/embed/NReBiUSD7RQ')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="drama" data-title="titanic">
+            <img src="https://m.media-amazon.com/images/M/MV5BYzYyN2FiZmUtYWYzMy00MzViLWJkZTMtOGY1ZjgzNWMwN2YxXkEyXkFqcGc@._V1_.jpg" alt="Titanic" onerror="this.src='https://picsum.photos/300/400?random=5'">
+            <div class="movie-info">
+                <div class="movie-title">Titanic</div>
+                <div class="movie-meta">
+                    <span>Drama</span>
+                    <span>Rating: 7.9</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Titanic', 'Un aristócrata de diecisiete años se enamora de un artista amable pero pobre a bordo del lujoso e desafortunado R.M.S. Titanic.', 'Drama / Romance', '1997', 'https://m.media-amazon.com/images/M/MV5BYzYyN2FiZmUtYWYzMy00MzViLWJkZTMtOGY1ZjgzNWMwN2YxXkEyXkFqcGc@._V1_.jpg', 'https://www.youtube.com/embed/I7c1etV7D7g')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="terror" data-title="chucky el muñeco diabolico child's play">
+            <img src="https://es.web.img2.acsta.net/pictures/19/05/06/18/35/2931866.jpg" alt="Chucky" onerror="this.src='https://picsum.photos/300/400?random=6'">
+            <div class="movie-info">
+                <div class="movie-title">Chucky: El Muñeco Diabólico</div>
+                <div class="movie-meta">
+                    <span>Terror</span>
+                    <span>Rating: 6.6</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Chucky: El Muñeco Diabólico', 'Una madre soltera le regala a su hijo un muñeco popular para su cumpleaños, sin saber que está poseído por el alma de un asesino en serie.', 'Terror', '1988', 'https://es.web.img2.acsta.net/pictures/19/05/06/18/35/2931866.jpg', 'https://www.youtube.com/embed/XJEYIqZaLxw')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="terror" data-title="annabelle 1">
+            <img src="https://es.web.img3.acsta.net/pictures/14/08/28/11/22/474253.jpg" alt="Annabelle" onerror="this.src='https://picsum.photos/300/400?random=7'">
+            <div class="movie-info">
+                <div class="movie-title">Annabelle</div>
+                <div class="movie-meta">
+                    <span>Terror</span>
+                    <span>Rating: 5.9</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Annabelle', 'Un hombre encuentra el regalo perfecto para su esposa embarazada: una muñeca vintage. Pero la alegría no dura mucho cuando la muñeca atrae fuerzas malévolas.', 'Terror', '2014', 'https://es.web.img3.acsta.net/pictures/14/08/28/11/22/474253.jpg', 'https://www.youtube.com/embed/8kmLHwKH31M')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="terror" data-title="annabelle 2 la creacion creation">
+            <img src="https://static.wikia.nocookie.net/doblaje/images/d/d6/POSTER-Annabelle2.jpg/revision/latest?cb=20190703192407&path-prefix=es" alt="Annabelle 2" onerror="this.src='https://picsum.photos/300/400?random=8'">
+            <div class="movie-info">
+                <div class="movie-title">Annabelle 2: La Creación</div>
+                <div class="movie-meta">
+                    <span>Terror</span>
+                    <span>Rating: 6.5</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Annabelle 2: La Creación', 'Años después de la trágica muerte de su hija, un fabricante de muñecas y su esposa acogen a una monja y a varias niñas de un orfanato clausurado.', 'Terror', '2017', 'https://static.wikia.nocookie.net/doblaje/images/d/d6/POSTER-Annabelle2.jpg/revision/latest?cb=20190703192407&path-prefix=es', 'https://www.youtube.com/embed/FIdzGOMbVss')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="terror" data-title="annabelle 3 viene a casa comes home">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0Jb1_VGyB516_lTKnioNuPU8UOoCCAXSY2RMbqBcuLA&s=10" alt="Annabelle 3" onerror="this.src='https://picsum.photos/300/400?random=9'">
+            <div class="movie-info">
+                <div class="movie-title">Annabelle 3: Viene a Casa</div>
+                <div class="movie-meta">
+                    <span>Terror</span>
+                    <span>Rating: 6.0</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Annabelle 3: Viene a Casa', 'Determinados a evitar que Annabelle cause más estragos, los demonólogos Ed y Lorraine Warren encierran a la muñeca poseída en la sala de artefactos de su casa.', 'Terror', '2019', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0Jb1_VGyB516_lTKnioNuPU8UOoCCAXSY2RMbqBcuLA&s=10', 'https://www.youtube.com/embed/KUnKWjeQA9A')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="drama" data-title="culpa mia my fault">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTycvoNZQW0O2kfcZ_SZKy5LVmsm-Puimun8X2LbChAMg&s=10" alt="Culpa Mía" onerror="this.src='https://picsum.photos/300/400?random=10'">
+            <div class="movie-info">
+                <div class="movie-title">Culpa Mía</div>
+                <div class="movie-meta">
+                    <span>Drama</span>
+                    <span>Rating: 6.2</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Culpa Mía', 'Noah debe dejar su ciudad, novio y amigos para mudarse a la mansión del nuevo marido de su madre. Allí conoce a su hermanastro Nick, y la atracción entre ambos se vuelve ineludible.', 'Drama / Romance', '2023', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTycvoNZQW0O2kfcZ_SZKy5LVmsm-Puimun8X2LbChAMg&s=10', 'https://www.youtube.com/embed/3dEgSAfw7Zc')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="drama" data-title="culpa tuya your fault">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmbytXkptbzQuJd6TOIzslYD87ehNiSzbNUOUGlkuZ5A&s=10" alt="Culpa Tuya" onerror="this.src='https://picsum.photos/300/400?random=11'">
+            <div class="movie-info">
+                <div class="movie-title">Culpa Tuya</div>
+                <div class="movie-meta">
+                    <span>Drama</span>
+                    <span>Rating: 6.4</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Culpa Tuya', 'El amor entre Noah y Nick parece indestructible a pesar de las trampas de sus padres. Pero la universidad y la aparición de nuevas personas pondrán a prueba su relación.', 'Drama / Romance', '2024', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmbytXkptbzQuJd6TOIzslYD87ehNiSzbNUOUGlkuZ5A&s=10', 'https://www.youtube.com/embed/f97f1jEqdgE')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="drama" data-title="culpa nuestra our fault">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlmoM21SW-CD8BvopK70GUWxx3kaS-QAgkLepF5il0Qg&s=10" alt="Culpa Nuestra" onerror="this.src='https://picsum.photos/300/400?random=12'">
+            <div class="movie-info">
+                <div class="movie-title">Culpa Nuestra</div>
+                <div class="movie-meta">
+                    <span>Drama</span>
+                    <span>Rating: 6.5</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Culpa Nuestra', 'El desenlace de la historia de Nick y Noah, donde tendrán que enfrentar su pasado y decidir si su amor es suficiente para superar las adversidades finales.', 'Drama / Romance', '2025', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlmoM21SW-CD8BvopK70GUWxx3kaS-QAgkLepF5il0Qg&s=10', 'https://www.youtube.com/embed/kuiOAsu8UsA')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="fantasia" data-title="toy story">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJZIl3V_h9os_86zl_1koOI1s_D7-7dLUzXXlZJZe6i7jMwRxmwcM9svPrkRQ_gaX-yPqhO2DXokKVUGsV5n1PwRvQUNqag2MwrZq8OedHYw&s=10" alt="Toy Story" onerror="this.src='https://picsum.photos/300/400?random=13'">
+            <div class="movie-info">
+                <div class="movie-title">Toy Story</div>
+                <div class="movie-meta">
+                    <span>Fantasía</span>
+                    <span>Rating: 8.3</span>
+                </div>
+                <button class="btn-details" onclick="openModal('Toy Story', 'Un muñeco de vaquero se siente celoso y amenazado cuando un nuevo juguete de un astronauta se convierte en el favorito de su dueño.', 'Fantasía / Animación', '1995', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJZIl3V_h9os_86zl_1koOI1s_D7-7dLUzXXlZJZe6i7jMwRxmwcM9svPrkRQ_gaX-yPqhO2DXokKVUGsV5n1PwRvQUNqag2MwrZq8OedHYw&s=10', 'https://www.youtube.com/embed/dRb0VW14IZY')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="drama" data-title="la misma luna under the same moon">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPtN2pEj58e8IRjrj2bCiezKPBFLLCDkyJtWF92bM9Fw&s=10" alt="La misma luna" onerror="this.src='https://picsum.photos/300/400?random=14'">
+            <div class="movie-info">
+                <div class="movie-title">La misma luna</div>
+                <div class="movie-meta">
+                    <span>Drama</span>
+                    <span>Rating: 7.4</span>
+                </div>
+                <button class="btn-details" onclick="openModal('La misma luna', 'Un niño mexicano de nueve años emprende un peligroso viaje hacia los Estados Unidos para reunirse con su madre, quien trabaja de manera no regulada para enviarle dinero.', 'Drama', '2007', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPtN2pEj58e8IRjrj2bCiezKPBFLLCDkyJtWF92bM9Fw&s=10', 'https://www.youtube.com/embed/ehwN5QcKm84')">Ver detalles</button>
+            </div>
+        </div>
+
+        <div class="movie-card" data-category="drama" data-title="a traves de mi ventana through my window">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJU6lTQuEbBek2rTb06Efcb7_d4RXtYJV9UzTh3gTf7g&s=10" alt="A través de mi ventana" onerror="this.src='https://picsum.photos/300/400?random=15'">
+            <div class="movie-info">
+                <div class="movie-title">A través de mi ventana</div>
+                <div class="movie-meta">
+                    <span>Drama</span>
+                    <span>Rating: 5.5</span>
+                </div>
+                <button class="btn-details" onclick="openModal('A través de mi ventana', 'Raquel lleva mucho tiempo enamorada de su atractivo vecino Ares, a quien observa en secreto. Su objetivo es hacer que Ares se enamore de ella.', 'Drama / Romance', '2022', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJU6lTQuEbBek2rTb06Efcb7_d4RXtYJV9UzTh3gTf7g&s=10', 'https://www.youtube.com/embed/E9god6TR8L4')">Ver detalles</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- VENTANA EMERGENTE (MODAL) CON REPRODUCTOR -->
+    <div class="modal" id="movieModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div class="modal-video-container">
+                <iframe id="modalIframe" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+            <div class="modal-body">
+                <h2 id="modalTitle">Título de la Película</h2>
+                <p id="modalMeta" style="color: #e50914; font-size: 14px; margin-bottom: 10px;"></p>
+                <p id="modalDescription">Descripción de la película...</p>
+                <button class="btn-play" style="width: 100%;" onclick="alert('Iniciando reproducción de la película')">Reproducir Película Completa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT (LÓGICA E INTERACTIVIDAD) -->
+    <script>
+        function openModal(title, description, genre, year, imgSrc, videoEmbedUrl) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalDescription').innerText = description;
+            document.getElementById('modalMeta').innerText = `Género: ${genre} | Año: ${year}`;
+           
+            // Asigna el video al reproductor dentro de la ventana emergente
+            document.getElementById('modalIframe').src = videoEmbedUrl + "?autoplay=1";
+           
+            // Cambia dinámicamente el Banner principal del fondo con la película seleccionada
+            document.getElementById('heroBanner').style.backgroundImage = `linear-gradient(to top, #141414 10%, rgba(20, 20, 20, 0.5)), url('${imgSrc}')`;
+            document.getElementById('heroTitle').innerText = title;
+            document.getElementById('heroDesc').innerText = description;
+
+            document.getElementById('movieModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('movieModal').style.display = 'none';
+            // Detiene la reproducción del video al cerrar la ventana
+            document.getElementById('modalIframe').src = "";
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('movieModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        function filterCategory(category, button) {
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const cards = document.querySelectorAll('.movie-card');
+            cards.forEach(card => {
+                if (category === 'todos' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function filterMovies() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.movie-card');
+
+            cards.forEach(card => {
+                const title = card.dataset.title;
+                if (title.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+Área de archivos adjuntos
+Vista previa del video de YouTube TERREMOTO: LA FALLA DE SAN ANDRÉS - Tráiler 1 (Subtitulado) - Oficial Warner Bros. PicturesVista previa del video de YouTube TERREMOTO: LA FALLA DE SAN ANDRÉS - Tráiler 1 (Subtitulado) - Oficial Warner Bros. Pictures
+
+Vista previa del video de YouTube El Conjuro (2013) | Trailer latinoVista previa del video de YouTube El Conjuro (2013) | Trailer latino
+
+Vista previa del video de YouTube CORALINE-TRAILER-ESPAÑOL latinoVista previa del video de YouTube CORALINE-TRAILER-ESPAÑOL latino
+
+Vista previa del video de YouTube El Señor de los Anillos: Los Anillos de Poder - Temporada 3 | Tráiler Oficial | Prime VideoVista previa del video de YouTube El Señor de los Anillos: Los Anillos de Poder - Temporada 3 | Tráiler Oficial | Prime Video
+
+Vista previa del video de YouTube Titanic 25th Anniversary | Official TrailerVista previa del video de YouTube Titanic 25th Anniversary | Official Trailer
+
+Vista previa del video de YouTube Chucky | Trailer OficialVista previa del video de YouTube Chucky | Trailer Oficial
+
+Vista previa del video de YouTube Annabelle - Tráiler Oficial en español HDVista previa del video de YouTube Annabelle - Tráiler Oficial en español HD
+
+Vista previa del video de YouTube ANNABELLE: LA CREACIÓN - Trailer 2 - Oficial Warner Bros. PicturesVista previa del video de YouTube ANNABELLE: LA CREACIÓN - Trailer 2 - Oficial Warner Bros. Pictures
+
+Vista previa del video de YouTube Annabelle 3: Viene a Casa - Trailer OficialVista previa del video de YouTube Annabelle 3: Viene a Casa - Trailer Oficial
+
+Vista previa del video de YouTube Culpa mía - Tráiler oficial I Prime VideoVista previa del video de YouTube Culpa mía - Tráiler oficial I Prime Video
+
+Vista previa del video de YouTube Culpa Tuya - Tráiler Oficial | Prime Video EspañaVista previa del video de YouTube Culpa Tuya - Tráiler Oficial | Prime Video España
+
+Vista previa del video de YouTube Culpa Nuestra - Tráiler Oficial | Prime VideoVista previa del video de YouTube Culpa Nuestra - Tráiler Oficial | Prime Video
+
+Vista previa del video de YouTube Toy Story trailer latinoVista previa del video de YouTube Toy Story trailer latino
+
+Vista previa del video de YouTube Película | La misma lunaVista previa del video de YouTube Película | La misma luna
+
+Vista previa del video de YouTube A través de mi ventana (EN ESPAÑOL) | Tráiler oficial | NetflixVista previa del video de YouTube A través de mi ventana (EN ESPAÑOL) | Tráiler oficial | Netflix
+
